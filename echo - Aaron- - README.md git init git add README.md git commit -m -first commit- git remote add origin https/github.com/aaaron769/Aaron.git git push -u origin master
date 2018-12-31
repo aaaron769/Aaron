@@ -1,0 +1,337 @@
+/** 
+this calss will implement four different classes to calculate the 
+cost of items in file cart.txt.
+by following the bulk description in file cat.txt.
+   */
+import java.util.*;
+import java.io.*;
+
+public class H14_aaron{
+   public static final String read_Me = "Bad file format. ";
+   /**
+   this main program will ask user two file number 
+   and prints the total cost of the cart items.    
+   */   
+   public static void main(String[] args) throws FileNotFoundException{
+      
+      Scanner in = new Scanner(System.in);
+      
+      try{
+      
+         System.out.println("please type the file name of cat.txt and cart.txt");
+         
+        // File file = new File(in.next());
+         Scanner infile = new Scanner(new File(in.next()));         
+         Catalog goToCatalog = new Catalog("North Mart");
+          
+              
+         while (infile.hasNextLine()){
+            String line = infile.nextLine();            
+            
+               String[] data = line.split(",");
+               if (data.length == 2){                                    
+                  double price = Double.parseDouble(data[1]);
+                  Item itemObj = new Item(data[0], price);
+                  goToCatalog.add(itemObj);
+               }else if (data.length == 4) {
+                  
+                  Double price = Double.parseDouble(data[1]);
+                  Double bulkprice = Double.parseDouble(data[3]); 
+                  int bulkQuantity = Integer.parseInt(data[2]);
+                  Item itemObj = new Item(data[0], price, bulkQuantity, bulkprice);
+                  goToCatalog.add(itemObj);
+               }          
+         }
+                  
+         //reading th file cart.txt
+         File files = new File(in.next());
+         Scanner infiles = new Scanner(files);
+
+         ShoppingCart shoplists = new ShoppingCart();
+         while (infiles.hasNextLine()){
+            String lines = infiles.nextLine();
+            String[] string = lines.split(",");
+            String quantity = string[1];
+            int quant = Integer.parseInt(quantity);
+            Item item = goToCatalog.get(string[0]);            
+            ItemOrder eachitem = new ItemOrder(item, quant);
+            shoplists.add(eachitem);          
+
+         }
+         
+         System.out.println(shoplists.toString());
+         
+         System.out.println("Total=  $" +shoplists.getTotal());
+
+         
+         // catch any exception
+      } catch (Exception e) {
+         System.out.println(read_Me);
+      } 
+   }
+}
+// the catalog class
+/**
+   This class is a catalog. The field, Array list will store objects its fields are from the cart.
+    The field contains an ArrayList of items. */
+import java.util.*;
+
+public class Catalog{
+   private ArrayList<Item> list= new ArrayList<Item>();
+   private String nameCompany;
+   
+   /**
+      this is a catolog constractor will going store objects in arrayList called list
+      @param name 
+   */
+   public Catalog(String name) {
+      this.nameCompany = name;
+      }
+   
+   /**
+      This methods adds an Item class in its arraylist.
+      @param next Which is the class of the parameter.
+   */
+   public void add(Item item){
+      this.list.add(item);
+   }
+   
+   /**
+      This method returns the size of the arraylist, which is also the number of item
+      sold by the store.
+      @return size the int size.
+   */
+   public int size(){
+      return list.size();
+   }
+   /**
+      This item will help to get the item of the specific index.
+      @param index the int value which will be the index.
+      @return item it will return an item which is of Item class.
+   */
+   public Item get(int index){
+      return list.get(index);
+   }
+   /**
+      This method will return the name of the item given a String parameter name.
+      @param itemName which will be the name of the item.
+      @return Item name. It will return an Item of Item Class.
+   */      
+   public Item get(String itemName){         
+      for (int i = 0; i < list.size(); i++){
+         if (list.get(i).getName().equals(itemName)){
+            return list.get(i);
+         }
+      }
+      
+      throw new IllegalArgumentException();
+   }
+   
+   /**
+      This method will return the name of the catalog
+      @return name String name.
+   */
+   public String getName(){
+      return nameCompany;
+   }
+   /**
+      Returns a String representation of this catalog
+      @return empty String representation of catalog.
+   */
+      
+   public String toString(){
+      String string = "";
+      for (int i = 0; i < list.size(); i++) {
+         string += list.get(i);// reads the to string of the item.
+         string += "\n";
+      }
+
+      return string;
+      
+   }
+}
+   // the item class
+   /**
+    This class will be used to store data of every item that is on 
+   catalog and it will be saved in the Catalog class. This class will save the name, the price and the bulk
+   prices for the given quantity if any.
+*/
+public class Item{
+   private String name;
+   private double price;
+   private int bulkQuantity;
+   private double bulkPrice;
+   
+   /**
+      The constructor of the class if there is a bulkQuantity.
+      @param name The name of the item.
+      @param price the cost of the item
+      @param bulkQuantity the bulk quantity
+      @param bulkPrice the cost for the bulk quantity.
+   */
+   public Item(String name, double price, int bulkQuantity, double bulkPrice) {
+      if (price < 0 || bulkQuantity < 0 || bulkPrice < 0) {
+         throw new IllegalArgumentException();
+      }   
+      this.name = name;
+      this.price = price;
+      this.bulkQuantity = bulkQuantity;
+      this.bulkPrice = bulkPrice;
+   }
+   
+   /**
+      This constructor is for item that does not have bulk quantity and price.
+      @param name the name of the item
+      @param price the price of the item.
+   */
+   public Item(String name, double price){
+      if (price < 0){
+         throw new IllegalArgumentException();
+      }
+      this.name = name;
+      this.price = price;
+   }
+   /**
+      This method returns the name of the item.
+      @return name of the item
+   */
+   public String getName(){
+      return name;
+   }
+   /**
+      This method returns the price of each goods taking into consideration of
+      the bulk prices.
+      @param quantity the number of items bought
+      @return total the total cost of the item
+   */
+   public double priceFor(int quantity){
+      if (quantity < 0) {
+         throw new IllegalArgumentException();
+      } 
+      double total = 0.0;        
+            
+            while ( quantity > bulkQuantity) {
+               total += bulkPrice;
+               quantity = quantity - bulkQuantity;
+            }
+     
+      
+         total += quantity*price;
+    
+      return total;
+   }
+   /**
+      This method prints out the String format of the item with cost and bulkprice and quantity if any.
+      @return empty the string representation of the item
+   */
+               
+   public String toString(){
+      String empty = "                    ".substring(0,20- name.length());
+      if (bulkQuantity == 0){
+         String text = String.format("%s, %s $%3.2f  each", name, empty, price);
+         return text;
+      }else{
+         String text1 = String.format("%s, %s $%3.2f  each (%d for $%.2f)", name, empty, price, bulkQuantity, bulkPrice);
+         return text1;
+      }
+   }
+}
+// the item order class
+/**
+   This class is used to go through every item that was in the shopping cart file. 
+   This class will help link the Item class and the Shopping cart.
+*/
+public class ItemOrder{
+   private Item name;
+   private int quantity;
+   
+   /**
+      Constructor for ItemOrder class.
+      @param item Item type
+      @param quantity the number of items bought
+   */   
+   public ItemOrder(Item item, int quantity){
+      this.name = item;
+      this.quantity = quantity;
+   }
+   
+   /**
+      Returns the name of the item that was bought
+      @return name type Item
+   */
+   public Item getItem(){
+      return name;
+   }   
+   /**
+      Returns the quantity of the items bought.
+      @return quantity the number of goods.
+   */
+   public int getQuantity(){
+      return quantity;
+   }   
+   /**
+      Returns the total price of the item.
+      @return price of the quantity.
+   */
+   public double getPrice(){
+      return name.priceFor(quantity);
+      
+   }
+}
+// the shopping cart class
+
+/**
+   This class ShoppingCart serves as the list that stores information about the overall order.
+   it contains an Arraylist field and it contains the ItemOrder Class.
+*/   
+import java.util.*;
+public class ShoppingCart{
+   private ArrayList<ItemOrder> list = new ArrayList<ItemOrder>();
+   
+   /**
+      This constructor for this class.
+      It takes no parameter when it is constructed.
+   */
+   public ShoppingCart(){
+   // nothing to do.           
+   }
+   /**
+      This method adds an ItemOrder to its array list.
+      @param order of ItemOrder class.
+   */
+   public void add(ItemOrder order){// 
+      list.add(order);
+   }
+   /**
+      This method will go through each item in the array and will calculate the total cost of the 
+      Shopping cart.
+      @return total the total amount which is of Double type.
+   */
+   public double getTotal(){
+      double total = 0;
+      for (int i =0; i < list.size(); i++){
+         total+= list.get(i).getPrice();// getting the price of all orderd item.
+      }
+      return total;
+   }
+   /**
+      This method will give a string representation of the receipt.
+      @return empty the String representation of the Receipt.
+   */
+   public String toString(){
+      String empty = "";
+      for (int i = 0; i < list.size(); i++) {
+      
+         String line = String.format("Item %d: %s", i+1, list.get(i).getItem().toString());
+         empty += line;
+         String spaces = "                                                ".substring(0, 60 - line.length());
+         empty += String.format("%s %3d items =  $%.2f",spaces, list.get(i).getQuantity(), Math.round(list.get(i).getPrice()*100.0) / 100.0);
+
+         empty+= "\n";
+      }
+      return empty;
+   }
+         
+
+}
+
